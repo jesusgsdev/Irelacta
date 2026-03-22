@@ -107,10 +107,16 @@ const Auth = (() => {
   function resetDemo() {
     const ok = confirm('Reset all demo data and start fresh? This will remove current local data.');
     if (!ok) return;
-    DB.resetDemoData();
+    const wasReset = DB.resetDemoData();
+    if (!wasReset) {
+      alert('Could not reset demo data automatically. On Safari private mode, storage can be restricted. Please disable private mode or clear website data from Safari settings.');
+      return;
+    }
     updateNavbar(null);
     showPage('page-login');
     showToast('Demo data reset successfully', 'success');
+    // Force a clean refresh so Safari reflects the reseeded state immediately.
+    window.location.reload();
   }
 
   /* ── Auto-restore session ────────────────────────── */

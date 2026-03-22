@@ -647,10 +647,28 @@ const DB = (() => {
   };
 
   function resetDemoData() {
-    Object.values(KEYS).forEach(key => localStorage.removeItem(key));
-    seed();
-    migrateExpandedDemoData();
-    Session.clear();
+    try {
+      // Remove known keys first
+      Object.keys(KEYS).forEach(k => {
+        localStorage.removeItem(KEYS[k]);
+      });
+
+      // Remove any legacy irelacta keys that may exist from older versions.
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key.indexOf('irelacta_') === 0) {
+          localStorage.removeItem(key);
+        }
+      }
+
+      seed();
+      migrateExpandedDemoData();
+      Session.clear();
+      return true;
+    } catch (err) {
+      console.warn('Unable to reset demo data. Storage may be restricted in this browser mode.', err);
+      return false;
+    }
   }
 
   seed();

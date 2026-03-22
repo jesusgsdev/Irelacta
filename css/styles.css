@@ -1,22 +1,22 @@
 /* =========================================================
-   Irelacta – Calming palette for new mums
-   Colours: lavender, rose, sage, warm cream
+   Irelacta – Calming neutral palette
+   Colours: teal, sage, soft lavender, soft white
    ========================================================= */
 
 /* ── Custom properties ───────────────────────────────── */
 :root {
-  --clr-bg:          #FDF8F5;
+  --clr-bg:          #F5F7FA;
   --clr-surface:     #FFFFFF;
   --clr-primary:     #B39BC8;   /* soft lavender */
   --clr-primary-dk:  #9A80B2;
   --clr-primary-lt:  #EDE3F7;
-  --clr-secondary:   #F4A8B0;   /* soft rose */
-  --clr-secondary-lt:#FDEEF0;
+  --clr-secondary:   #6EADB5;   /* muted teal */
+  --clr-secondary-lt:#E0F1F2;
   --clr-accent:      #A8C5A0;   /* sage green */
   --clr-accent-lt:   #E8F5E4;
-  --clr-text:        #4A4050;
-  --clr-text-lt:     #7A7280;
-  --clr-border:      #E8DFF0;
+  --clr-text:        #374151;
+  --clr-text-lt:     #6B7280;
+  --clr-border:      #DDE3EA;
   --clr-danger:      #E07070;
   --clr-danger-lt:   #FDEAEA;
   --clr-success:     #7ABF7A;
@@ -26,9 +26,9 @@
   --radius-md: 14px;
   --radius-lg: 22px;
 
-  --shadow-sm: 0 2px 8px rgba(179,155,200,0.12);
-  --shadow-md: 0 4px 20px rgba(179,155,200,0.18);
-  --shadow-lg: 0 8px 32px rgba(179,155,200,0.22);
+  --shadow-sm: 0 2px 8px rgba(100,116,139,0.12);
+  --shadow-md: 0 4px 20px rgba(100,116,139,0.18);
+  --shadow-lg: 0 8px 32px rgba(100,116,139,0.22);
 
   --transition: 0.2s ease;
 }
@@ -304,7 +304,7 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--clr-primary);
-  box-shadow: 0 0 0 3px rgba(179,155,200,0.2);
+  box-shadow: 0 0 0 3px rgba(110,173,181,0.2);
   background: #fff;
 }
 
@@ -348,7 +348,7 @@ textarea { resize: vertical; min-height: 90px; }
   background: var(--clr-secondary);
   color: #fff;
 }
-.btn-secondary:hover:not(:disabled) { background: #e08f99; }
+.btn-secondary:hover:not(:disabled) { background: #579ca4; }
 
 .btn-accent {
   background: var(--clr-accent);
@@ -392,7 +392,7 @@ textarea { resize: vertical; min-height: 90px; }
 }
 
 .badge-primary { background: var(--clr-primary-lt); color: var(--clr-primary-dk); }
-.badge-secondary { background: var(--clr-secondary-lt); color: #c4707a; }
+.badge-secondary { background: var(--clr-secondary-lt); color: #3a8a94; }
 .badge-accent { background: var(--clr-accent-lt); color: #5a8a5a; }
 
 /* ── Dashboard layout ─────────────────────────────────── */
@@ -534,7 +534,7 @@ textarea { resize: vertical; min-height: 90px; }
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(74,64,80,0.45);
+  background: rgba(55,65,81,0.45);
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Irelacta – Postnatal Care</title>
+  <meta name="description" content="Irelacta – a calming postnatal care platform connecting consultants and new mums." />
+
+  <!-- Google Fonts – Nunito for a soft, friendly feel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     NAVBAR  (hidden on login page)
+═══════════════════════════════════════════════════════════ -->
+<nav class="navbar" id="navbar" aria-label="Main navigation">
+  <div class="navbar__inner">
+    <div class="navbar__brand">
+      <span class="logo-icon" aria-hidden="true">🌸</span>
+      <span>Irelacta</span>
+    </div>
+    <div class="navbar__actions">
+      <span class="navbar__user" id="nav-user"></span>
+      <button class="btn btn-outline btn-sm hidden" id="btn-logout" aria-label="Log out">
+        Log out
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: LOGIN
+═══════════════════════════════════════════════════════════ -->
+<section class="page active" id="page-login" aria-label="Login">
+  <div class="login-card">
+    <div class="login-card__logo" aria-hidden="true">🌸</div>
+    <h1 class="login-card__title">Irelacta</h1>
+    <p class="login-card__subtitle">Postnatal care, beautifully simple</p>
+
+    <div class="role-tabs" role="tablist" aria-label="Select role">
+      <button class="role-tab" data-role="consultant" role="tab" aria-selected="false">
+        👩‍⚕️ Consultant
+      </button>
+      <button class="role-tab" data-role="mum" role="tab" aria-selected="false">
+        🍼 Mum
+      </button>
+    </div>
+
+    <form id="login-form" novalidate>
+      <div class="form-group">
+        <label for="login-username">Username</label>
+        <input
+          type="text"
+          id="login-username"
+          name="username"
+          autocomplete="username"
+          placeholder="Enter your username"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input
+          type="password"
+          id="login-password"
+          name="password"
+          autocomplete="current-password"
+          placeholder="Enter your password"
+          required
+        />
+      </div>
+      <p id="login-error" class="alert alert-error hidden" role="alert" aria-live="polite"></p>
+      <button type="submit" class="btn btn-primary btn-block btn-lg mt-md">Sign in</button>
+    </form>
+
+    <p class="text-sm text-lt text-center mt-md" id="login-hint">
+      Demo: consultant / demo1234
+    </p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: CONSULTANT DASHBOARD
+═══════════════════════════════════════════════════════════ -->
+<section class="page" id="page-consultant" aria-label="Consultant dashboard">
+
+  <!-- ── VIEW: Overview ──────────────────────────────── -->
+  <div class="view" id="view-dashboard">
+    <div class="dashboard container">
+      <div class="dashboard__header">
+        <div>
+          <h2 class="dashboard__title">My Clients</h2>
+          <p class="dashboard__subtitle">Manage mum profiles and consultation records</p>
+        </div>
+        <button class="btn btn-primary" id="btn-add-mum">
+          ➕ Add new mum
+        </button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stat-grid" aria-label="Summary statistics">
+        <div class="stat-card">
+          <div class="stat-card__num" id="stat-mums">0</div>
+          <div class="stat-card__label">Mum profiles</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__num" id="stat-consultations">0</div>
+          <div class="stat-card__label">Consultations</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__num" id="stat-recent" style="font-size:1rem">—</div>
+          <div class="stat-card__label">Most recent visit</div>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="search-bar" role="search">
+        <span class="search-bar__icon" aria-hidden="true">🔍</span>
+        <input
+          type="text"
+          id="mum-search"
+          placeholder="Search by name, email or baby name…"
+          aria-label="Search mum profiles"
+        />
+      </div>
+
+      <!-- Mum list -->
+      <div class="mum-list" id="mum-list" role="list" aria-label="Mum profiles"></div>
+    </div>
+  </div>
+
+  <!-- ── VIEW: Mum profile ────────────────────────────── -->
+  <div class="view" id="view-mum-profile">
+    <div class="dashboard container">
+
+      <div class="back-bar">
+        <button class="btn btn-ghost btn-sm" id="btn-back-to-dashboard">← Back</button>
+        <span class="back-bar__title">Mum profile</span>
+      </div>
+
+      <div class="grid-2" style="align-items:start">
+
+        <!-- Profile card -->
+        <div class="card" aria-label="Mum profile details">
+          <div class="card__header">
+            <h3>Profile</h3>
+          </div>
+          <div id="mum-profile-pane"></div>
+        </div>
+
+        <!-- Consultation history -->
+        <div>
+          <div class="card__header" style="margin-bottom:1rem">
+            <h3>Consultation History
+              <span class="badge badge-primary ml-sm" id="consultation-count"></span>
+            </h3>
+            <button class="btn btn-primary btn-sm" id="btn-add-consultation">
+              ➕ Add consultation
+            </button>
+          </div>
+          <div class="consultation-list" id="consultation-list" aria-label="Consultation records"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: MUM DASHBOARD
+═══════════════════════════════════════════════════════════ -->
+<section class="page" id="page-mum" aria-label="Mum dashboard">
+  <div class="dashboard container">
+
+    <div class="dashboard__header">
+      <div>
+        <h2 class="dashboard__title">My Consultations</h2>
+        <p class="dashboard__subtitle">Your postnatal care journey</p>
+      </div>
+    </div>
+
+    <div id="mum-dash-content">
+      <div class="grid-2" style="align-items:start">
+
+        <!-- Profile -->
+        <div class="card" aria-label="Your profile">
+          <div class="card__header">
+            <h3>My Profile</h3>
+          </div>
+          <div id="mum-dash-profile"></div>
+        </div>
+
+        <!-- History -->
+        <div>
+          <div class="card__header" style="margin-bottom:1rem">
+            <h3>Consultation History
+              <span class="badge badge-primary" id="mum-cons-count"></span>
+            </h3>
+          </div>
+          <div class="consultation-list" id="mum-consultation-list" aria-label="Your consultation history"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════════════════════ -->
+
+<!-- Add new mum -->
+<div class="modal-overlay" id="modal-add-mum" role="dialog" aria-modal="true" aria-labelledby="modal-add-mum-title">
+  <div class="modal">
+    <div class="modal__header">
+      <h3 id="modal-add-mum-title">Add new mum profile</h3>
+      <button class="btn btn-ghost btn-sm" data-close-modal="modal-add-mum" aria-label="Close">✕</button>
+    </div>
+    <div class="modal__body">
+      <p id="add-mum-error" class="alert alert-error hidden" role="alert" aria-live="polite"></p>
+      <form id="form-add-mum" novalidate>
+        <div class="form-group">
+          <label for="mum-name">Full name <span aria-hidden="true" style="color:var(--clr-danger)">*</span></label>
+          <input type="text" id="mum-name" name="mum-name" placeholder="e.g. Emma Thompson" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="mum-email">Email address</label>
+            <input type="email" id="mum-email" name="mum-email" placeholder="emma@example.com" />
+          </div>
+          <div class="form-group">
+            <label for="mum-phone">Phone number</label>
+            <input type="tel" id="mum-phone" name="mum-phone" placeholder="+353 87 …" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="mum-dob">Mum's date of birth</label>
+          <input type="date" id="mum-dob" name="mum-dob" />
+        </div>
+        <hr class="divider" />
+        <h4 style="margin-bottom:.75rem">Baby details</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="mum-baby-name">Baby's name</label>
+            <input type="text" id="mum-baby-name" name="mum-baby-name" placeholder="e.g. Oliver" />
+          </div>
+          <div class="form-group">
+            <label for="mum-baby-dob">Baby's date of birth</label>
+            <input type="date" id="mum-baby-dob" name="mum-baby-dob" />
+          </div>
+        </div>
+        <hr class="divider" />
+        <div class="form-group">
+          <label for="mum-notes">Clinical notes / background</label>
+          <textarea id="mum-notes" name="mum-notes" rows="3" placeholder="Any relevant background information…"></textarea>
+        </div>
+        <div class="modal__footer" style="padding:0;border:none;margin-top:.5rem">
+          <button type="button" class="btn btn-ghost" data-close-modal="modal-add-mum">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Edit mum profile -->
+<div class="modal-overlay" id="modal-edit-mum" role="dialog" aria-modal="true" aria-labelledby="modal-edit-mum-title">
+  <div class="modal">
+    <div class="modal__header">
+      <h3 id="modal-edit-mum-title">Edit mum profile</h3>
+      <button class="btn btn-ghost btn-sm" data-close-modal="modal-edit-mum" aria-label="Close">✕</button>
+    </div>
+    <div class="modal__body">
+      <p id="edit-mum-error" class="alert alert-error hidden" role="alert" aria-live="polite"></p>
+      <form id="form-edit-mum" novalidate>
+        <div class="form-group">
+          <label for="edit-mum-name">Full name <span aria-hidden="true" style="color:var(--clr-danger)">*</span></label>
+          <input type="text" id="edit-mum-name" name="edit-mum-name" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-mum-email">Email address</label>
+            <input type="email" id="edit-mum-email" name="edit-mum-email" />
+          </div>
+          <div class="form-group">
+            <label for="edit-mum-phone">Phone number</label>
+            <input type="tel" id="edit-mum-phone" name="edit-mum-phone" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="edit-mum-dob">Mum's date of birth</label>
+          <input type="date" id="edit-mum-dob" name="edit-mum-dob" />
+        </div>
+        <hr class="divider" />
+        <h4 style="margin-bottom:.75rem">Baby details</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="edit-mum-baby-name">Baby's name</label>
+            <input type="text" id="edit-mum-baby-name" name="edit-mum-baby-name" />
+          </div>
+          <div class="form-group">
+            <label for="edit-mum-baby-dob">Baby's date of birth</label>
+            <input type="date" id="edit-mum-baby-dob" name="edit-mum-baby-dob" />
+          </div>
+        </div>
+        <hr class="divider" />
+        <div class="form-group">
+          <label for="edit-mum-notes">Clinical notes / background</label>
+          <textarea id="edit-mum-notes" name="edit-mum-notes" rows="3"></textarea>
+        </div>
+        <div class="modal__footer" style="padding:0;border:none;margin-top:.5rem">
+          <button type="button" class="btn btn-ghost" data-close-modal="modal-edit-mum">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Add consultation -->
+<div class="modal-overlay" id="modal-add-consultation" role="dialog" aria-modal="true" aria-labelledby="modal-add-cons-title">
+  <div class="modal">
+    <div class="modal__header">
+      <h3 id="modal-add-cons-title">Add consultation record</h3>
+      <button class="btn btn-ghost btn-sm" data-close-modal="modal-add-consultation" aria-label="Close">✕</button>
+    </div>
+    <div class="modal__body">
+      <p id="add-cons-error" class="alert alert-error hidden" role="alert" aria-live="polite"></p>
+      <form id="form-add-consultation" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="cons-date">Date <span aria-hidden="true" style="color:var(--clr-danger)">*</span></label>
+            <input type="date" id="cons-date" name="cons-date" required />
+          </div>
+          <div class="form-group">
+            <label for="cons-time">Time <span aria-hidden="true" style="color:var(--clr-danger)">*</span></label>
+            <input type="time" id="cons-time" name="cons-time" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="cons-notes">Consultation notes <span aria-hidden="true" style="color:var(--clr-danger)">*</span></label>
+          <textarea id="cons-notes" name="cons-notes" rows="4" placeholder="What was discussed, how the mum is doing…" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="cons-recommendations">Recommendations</label>
+          <textarea id="cons-recommendations" name="cons-recommendations" rows="3" placeholder="Medication, lifestyle adjustments, supplements…"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="cons-next-steps">Next steps / Actions</label>
+          <textarea id="cons-next-steps" name="cons-next-steps" rows="3" placeholder="Follow-up appointments, referrals, tasks for the mum…"></textarea>
+        </div>
+        <div class="modal__footer" style="padding:0;border:none;margin-top:.5rem">
+          <button type="button" class="btn btn-ghost" data-close-modal="modal-add-consultation">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save consultation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Login info after adding mum -->
+<div class="modal-overlay" id="modal-login-info" role="dialog" aria-modal="true" aria-labelledby="modal-login-info-title">
+  <div class="modal">
+    <div class="modal__header">
+      <h3 id="modal-login-info-title">🎉 Profile created!</h3>
+      <button class="btn btn-ghost btn-sm" data-close-modal="modal-login-info" aria-label="Close">✕</button>
+    </div>
+    <div class="modal__body">
+      <p>The mum's profile has been created. Share these login details with her:</p>
+      <div class="alert alert-info mt-md" style="font-family:monospace;font-size:1rem" id="new-login-info"></div>
+      <p class="text-sm text-lt mt-md">The mum can log in at any time to view her consultation history.</p>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn-primary" data-close-modal="modal-login-info">Got it</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     TOAST CONTAINER
+═══════════════════════════════════════════════════════════ -->
+<div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════════════ -->
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/consultant.js"></script>
+<script src="js/mum.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  /* ── Wire up hidden class toggling for alert elements ── */
+  document.querySelectorAll('.alert').forEach(el => {
+    if (!el.textContent.trim()) el.classList.add('hidden');
+  });
+
+  /* ── Initialise app ─────────────────────────────────── */
+  document.addEventListener('DOMContentLoaded', () => {
+    // Register a page-change listener so the navbar visibility updates
+    // whenever showPage() is called – without monkey-patching the function.
+    const navbar    = document.getElementById('navbar');
+    const loginPage = document.getElementById('page-login');
+
+    window._onShowPage = function() {
+      navbar.style.display = loginPage.classList.contains('active') ? 'none' : '';
+    };
+
+    ConsultantDash.bootstrap();
+    Auth.init();
+    Auth.restore();
+    window._onShowPage(); // initial state
+  });
+</script>
+
+</body>
+</html>

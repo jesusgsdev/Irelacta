@@ -39,6 +39,9 @@
     </div>
     <div class="navbar__actions">
       <span class="navbar__user" id="nav-user"></span>
+      <button class="btn btn-outline btn-sm" id="btn-reset-demo" aria-label="Reset demo data">
+        Reset demo data
+      </button>
       <button class="btn btn-outline btn-sm hidden" id="btn-logout" aria-label="Log out">
         Log out
       </button>
@@ -161,7 +164,7 @@
         <span class="back-bar__title">Mum profile</span>
       </div>
 
-      <div class="grid-2" style="align-items:start">
+      <div class="profile-stack">
 
         <!-- Profile card -->
         <div class="card" aria-label="Mum profile details">
@@ -172,7 +175,7 @@
         </div>
 
         <!-- Consultation history -->
-        <div>
+        <section class="consultation-section" aria-label="Consultation history">
           <div class="card__header" style="margin-bottom:1rem">
             <h3>Consultation History
               <span class="badge badge-primary ml-sm" id="consultation-count"></span>
@@ -182,7 +185,8 @@
             </button>
           </div>
           <div class="consultation-list" id="consultation-list" aria-label="Consultation records"></div>
-        </div>
+          <div id="consultation-pagination" class="pagination-bar" aria-label="Consultation pages"></div>
+        </section>
 
       </div>
     </div>
@@ -237,7 +241,7 @@
     </div>
 
     <div id="mum-dash-content">
-      <div class="grid-2" style="align-items:start">
+      <div class="profile-stack">
 
         <!-- Profile -->
         <div class="card" aria-label="Your profile">
@@ -248,14 +252,15 @@
         </div>
 
         <!-- History -->
-        <div>
+        <section class="consultation-section" aria-label="Your consultation history">
           <div class="card__header" style="margin-bottom:1rem">
             <h3>Consultation History
               <span class="badge badge-primary" id="mum-cons-count"></span>
             </h3>
           </div>
           <div class="consultation-list" id="mum-consultation-list" aria-label="Your consultation history"></div>
-        </div>
+          <div id="mum-cons-pagination" class="pagination-bar" aria-label="Consultation pages"></div>
+        </section>
 
       </div>
     </div>

@@ -13,6 +13,8 @@ const ConsultantDash = (() => {
   let _calYear  = new Date().getFullYear();
   let _calMonth = new Date().getMonth(); // 0-indexed
   let _calSelectedDate = null;
+  let _consultationPage = 1;
+  const CONSULTATIONS_PER_PAGE = 3;
 
   /* ═══ DASHBOARD ════════════════════════════════════ */
   function render() {
@@ -98,6 +100,7 @@ const ConsultantDash = (() => {
   /* ═══ MUM PROFILE VIEW ══════════════════════════════ */
   function openMumProfile(mumId) {
     _selectedMumId = mumId;
+    _consultationPage = 1;
     _renderProfile(mumId);
     _renderConsultationHistory(mumId);
     _showView('view-mum-profile');
@@ -111,45 +114,50 @@ const ConsultantDash = (() => {
     const mumUser = DB.Users.findByMumId(mumId);
 
     pane.innerHTML = `
-      <div class="profile-section">
-        <div class="profile-avatar">${initials(mum.name)}</div>
-        <div>
-          <div class="profile-info__name">${esc(mum.name)}</div>
-          ${mum.email
-            ? `<div class="profile-info__detail">📧 ${esc(mum.email)}</div>`
-            : ''}
-          ${mum.phone
-            ? `<div class="profile-info__detail">📞 ${esc(mum.phone)}</div>`
-            : ''}
-          ${mum.dob
-            ? `<div class="profile-info__detail">🎂 ${fmtDate(mum.dob)} (${calcAge(mum.dob)} yrs)</div>`
-            : ''}
-          ${mum.babyName
-            ? `<div class="profile-info__detail">🍼 Baby ${esc(mum.babyName)}
-                 ${mum.babyDob ? ` – born ${fmtDate(mum.babyDob)}` : ''}
-               </div>`
-            : ''}
-          ${mumUser
-            ? `<div class="profile-info__detail">🔑 Login: <strong>${esc(mumUser.username)}</strong></div>`
-            : ''}
-          <div style="margin-top:0.6rem">
-            <button class="btn btn-outline btn-sm" id="btn-edit-profile">✏️ Edit profile</button>
+      <div class="profile-split">
+        <div class="profile-section">
+          <div class="profile-avatar">${initials(mum.name)}</div>
+          <div>
+            <div class="profile-info__name">${esc(mum.name)}</div>
+            ${mum.email
+              ? `<div class="profile-info__detail">📧 ${esc(mum.email)}</div>`
+              : ''}
+            ${mum.phone
+              ? `<div class="profile-info__detail">📞 ${esc(mum.phone)}</div>`
+              : ''}
+            ${mum.dob
+              ? `<div class="profile-info__detail">🎂 ${fmtDate(mum.dob)} (${calcAge(mum.dob)} yrs)</div>`
+              : ''}
+            ${mum.babyName
+              ? `<div class="profile-info__detail">🍼 Baby ${esc(mum.babyName)}
+                   ${mum.babyDob ? ` – born ${fmtDate(mum.babyDob)}` : ''}
+                 </div>`
+              : ''}
+            ${mumUser
+              ? `<div class="profile-info__detail">🔑 Login: <strong>${esc(mumUser.username)}</strong></div>`
+              : ''}
+            <div style="margin-top:0.6rem">
+              <button class="btn btn-outline btn-sm" id="btn-edit-profile">✏️ Edit profile</button>
+            </div>
           </div>
         </div>
-      </div>
-      ${mum.notes ? `
-        <hr class="divider">
-        <div>
+        <aside class="clinical-notes-panel" aria-label="Clinical notes">
           <div class="text-sm text-lt" style="font-weight:700;text-transform:uppercase;letter-spacing:.04em">Clinical notes</div>
-          <p style="margin-top:.35rem;font-size:.92rem">${esc(mum.notes)}</p>
-        </div>` : ''}`;
+          <p style="margin-top:.35rem;font-size:.92rem">${mum.notes ? esc(mum.notes) : 'No clinical notes yet.'}</p>
+        </aside>
+      </div>`;
 
     document.getElementById('btn-edit-profile').addEventListener('click', () => openEditMumModal(mumId));
   }
 
   function _renderConsultationHistory(mumId) {
     const listEl = document.getElementById('consultation-list');
+    const pagerEl = document.getElementById('consultation-pagination');
     const cons   = DB.Consultations.forMum(mumId);
+    const totalPages = Math.max(1, Math.ceil(cons.length / CONSULTATIONS_PER_PAGE));
+    _consultationPage = Math.min(Math.max(_consultationPage, 1), totalPages);
+    const start = (_consultationPage - 1) * CONSULTATIONS_PER_PAGE;
+    const pageCons = cons.slice(start, start + CONSULTATIONS_PER_PAGE);
 
     document.getElementById('consultation-count').textContent =
       `${cons.length} consultation${cons.length !== 1 ? 's' : ''}`;
@@ -161,10 +169,11 @@ const ConsultantDash = (() => {
           <div class="empty-state__title">No consultations yet</div>
           <div class="empty-state__text">Add the first consultation record above.</div>
         </div>`;
+      pagerEl.innerHTML = '';
       return;
     }
 
-    listEl.innerHTML = cons.map(c => `
+    listEl.innerHTML = pageCons.map(c => `
       <div class="consultation-card">
         <div class="consultation-card__header">
           <div class="consultation-card__date">
@@ -188,6 +197,35 @@ const ConsultantDash = (() => {
             <div class="consultation-card__body">${esc(c.nextSteps)}</div>
           </div>` : ''}
       </div>`).join('');
+
+    pagerEl.innerHTML = `
+      <div class="pagination-bar__meta">
+        Showing ${start + 1}-${Math.min(start + CONSULTATIONS_PER_PAGE, cons.length)} of ${cons.length}
+      </div>
+      <div class="pagination-bar__actions">
+        <button class="btn btn-ghost btn-sm" id="btn-cons-prev" ${_consultationPage === 1 ? 'disabled' : ''}>‹ Previous</button>
+        <span class="pagination-bar__meta">Page ${_consultationPage} of ${totalPages}</span>
+        <button class="btn btn-ghost btn-sm" id="btn-cons-next" ${_consultationPage === totalPages ? 'disabled' : ''}>Next ›</button>
+      </div>`;
+
+    const prevBtn = document.getElementById('btn-cons-prev');
+    const nextBtn = document.getElementById('btn-cons-next');
+    if (prevBtn) {
+      prevBtn.addEventListener('click', () => {
+        if (_consultationPage > 1) {
+          _consultationPage--;
+          _renderConsultationHistory(mumId);
+        }
+      });
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        if (_consultationPage < totalPages) {
+          _consultationPage++;
+          _renderConsultationHistory(mumId);
+        }
+      });
+    }
 
     listEl.querySelectorAll('[data-delete]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -372,6 +410,7 @@ const ConsultantDash = (() => {
       });
 
       closeModal('modal-add-consultation');
+      _consultationPage = 1;
       _renderConsultationHistory(_selectedMumId);
       _renderStats();
       showToast('Consultation saved', 'success');

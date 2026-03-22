@@ -46,7 +46,7 @@ const DB = (() => {
       {
         id: consultantId, username: 'consultant',
         password: 'demo1234', role: 'consultant',
-        name: 'Dr. Sarah O\'Brien',
+        name: 'Lact. Consultant Irene Arias Saiz',
       },
       {
         id: mum1UserId, username: 'emma',
@@ -307,6 +307,273 @@ const DB = (() => {
     ]);
   }
 
+  // Ensure expanded demo records are present even when localStorage already
+  // existed from an older app version with fewer mums/consultations.
+  function migrateExpandedDemoData() {
+    const users = read(KEYS.USERS) || [];
+    const mums = read(KEYS.MUMS) || [];
+    const consultations = read(KEYS.CONSULTATIONS) || [];
+
+    if (!users.length || !mums.length) return;
+
+    const consultant = users.find(u => u.username === 'consultant') || users.find(u => u.role === 'consultant');
+    if (!consultant) return;
+
+    if (consultant.name !== 'Lact. Consultant Irene Arias Saiz') {
+      consultant.name = 'Lact. Consultant Irene Arias Saiz';
+      didChange = true;
+    }
+
+    const consultantId = consultant.id;
+    let didChange = false;
+
+    const uniqueUsername = (base) => {
+      let candidate = base;
+      let n = 1;
+      while (users.some(u => u.username === candidate)) {
+        n += 1;
+        candidate = `${base}${n}`;
+      }
+      return candidate;
+    };
+
+    const addConsultationIfMissing = (mumId, payload) => {
+      const exists = consultations.some(c => c.mumId === mumId && c.date === payload.date && c.time === payload.time);
+      if (exists) return;
+      consultations.push({
+        id: uid(),
+        mumId,
+        consultantId,
+        createdAt: `${payload.date}T${payload.time}:00.000Z`,
+        ...payload,
+      });
+      didChange = true;
+    };
+
+    const ensureMumWithUser = (spec) => {
+      let mum = mums.find(m => m.name.toLowerCase() === spec.name.toLowerCase());
+      if (!mum) {
+        mum = {
+          id: uid(),
+          name: spec.name,
+          email: spec.email,
+          phone: spec.phone,
+          dob: spec.dob,
+          babyName: spec.babyName,
+          babyDob: spec.babyDob,
+          notes: spec.notes,
+          createdAt: spec.createdAt,
+        };
+        mums.push(mum);
+        didChange = true;
+      }
+
+      const hasUser = users.some(u => u.mumId === mum.id);
+      if (!hasUser) {
+        const preferredUsername = users.some(u => u.username === spec.username)
+          ? uniqueUsername(spec.username)
+          : spec.username;
+        users.push({
+          id: uid(),
+          username: preferredUsername,
+          password: 'demo1234',
+          role: 'mum',
+          name: mum.name,
+          mumId: mum.id,
+        });
+        didChange = true;
+      }
+
+      return mum;
+    };
+
+    const claire = ensureMumWithUser({
+      name: 'Claire Murphy',
+      username: 'claire',
+      email: 'claire@example.com',
+      phone: '+353 85 234 5678',
+      dob: '1993-03-22',
+      babyName: 'Noah',
+      babyDob: '2025-12-15',
+      notes: 'First-time mum. Natural birth. Significant breastfeeding difficulties with latch and milk supply.',
+      createdAt: '2025-12-20T09:00:00.000Z',
+    });
+
+    const sophie = ensureMumWithUser({
+      name: 'Sophie Walsh',
+      username: 'sophie',
+      email: 'sophie@example.com',
+      phone: '+353 89 345 6789',
+      dob: '1990-07-18',
+      babyName: null,
+      babyDob: null,
+      notes: 'Currently 30 weeks pregnant. First pregnancy. Regular antenatal follow-up appointments.',
+      createdAt: '2025-11-10T10:00:00.000Z',
+    });
+
+    const aoife = ensureMumWithUser({
+      name: 'Aoife Brennan',
+      username: 'aoife',
+      email: 'aoife@example.com',
+      phone: '+353 83 456 7890',
+      dob: '1995-11-29',
+      babyName: null,
+      babyDob: null,
+      notes: 'Currently 32 weeks pregnant. Using hypnobirthing techniques to manage birth anxiety.',
+      createdAt: '2026-01-05T11:00:00.000Z',
+    });
+
+    // Claire: 5 lactation consultations
+    if (claire) {
+      [
+        {
+          date: '2025-12-20', time: '10:00',
+          notes: 'Initial breastfeeding assessment. Claire reports significant pain during feeds. Latch observed and found to be shallow.',
+          recommendations: 'Laid-back breastfeeding position trialled. Nipple shields provided temporarily. Increase feed frequency.',
+          nextSteps: 'Return in two weeks for latch reassessment. Contact helpline if pain worsens.',
+        },
+        {
+          date: '2026-01-05', time: '10:30',
+          notes: 'Latch showing improvement with laid-back position. Pain reduced. Noah\'s weight gain slightly below expected curve - milk supply concerns raised.',
+          recommendations: 'Offer both breasts at each feed. Top up with expressed milk after feeds if needed.',
+          nextSteps: 'Weigh Noah weekly. Introduce hand expression and pumping to stimulate supply.',
+        },
+        {
+          date: '2026-01-19', time: '10:00',
+          notes: 'Power pumping schedule introduced over the past fortnight. Claire is supplementing with expressed milk. Noah\'s weight gain improving.',
+          recommendations: 'Continue power pumping twice daily. Stay hydrated and maintain regular meals. Rest as much as possible.',
+          nextSteps: 'Review supply increase at next session. Consider temporary formula top-up if weight gain stalls.',
+        },
+        {
+          date: '2026-02-02', time: '10:30',
+          notes: 'Milk supply noticeably recovering. Claire more confident with latch. Supplemental feeds reduced. Noah back on growth curve.',
+          recommendations: 'Gradually phase out formula top-ups over next two weeks. Continue skin-to-skin contact.',
+          nextSteps: 'Final lactation review in two weeks to confirm full breastfeeding established.',
+        },
+        {
+          date: '2026-02-16', time: '10:00',
+          notes: 'Full breastfeeding now established. Pain-free latch confirmed. Noah gaining weight consistently. Claire reports growing enjoyment of feeds.',
+          recommendations: 'No formula supplementation needed. Continue current feeding routine. Self-care and rest remain important.',
+          nextSteps: 'Discharge from intensive lactation support. Open appointment available if concerns arise.',
+        },
+      ].forEach(c => addConsultationIfMissing(claire.id, c));
+    }
+
+    // Sophie: pregnancy follow-up consultations
+    if (sophie) {
+      [
+        {
+          date: '2025-11-15', time: '11:00',
+          notes: 'Review of 20-week anatomy scan results. All structures developing normally. Placenta anterior, position noted. Sophie feeling well, mild heartburn reported.',
+          recommendations: 'Small frequent meals to manage heartburn. Avoid lying down immediately after eating. Antacids approved if needed.',
+          nextSteps: 'Schedule glucose tolerance test at 24 weeks. Continue folic acid and vitamin D supplementation.',
+        },
+        {
+          date: '2025-12-10', time: '11:00',
+          notes: '24-week check. GTT result normal - gestational diabetes ruled out. Baby\'s movements felt regularly. Blood pressure within normal range. Discussing birth preferences.',
+          recommendations: 'Continue gentle exercise - walking and swimming recommended. Stay hydrated. Track foetal movements daily.',
+          nextSteps: 'Begin antenatal classes. Prepare birth plan draft for next appointment.',
+        },
+        {
+          date: '2026-01-20', time: '11:00',
+          notes: '28-week check. Baby in cephalic (head-down) position. Symphysis-fundal height measuring appropriately. Sophie reports pelvic girdle discomfort beginning.',
+          recommendations: 'Refer to physiotherapy for pelvic girdle pain. Supportive belt may help. Sleep with pillow between knees.',
+          nextSteps: 'Arrange 32-week growth scan. Complete birth plan. Discuss pain management options for labour.',
+        },
+      ].forEach(c => addConsultationIfMissing(sophie.id, c));
+    }
+
+    // Aoife: hypnotherapy consultations
+    if (aoife) {
+      [
+        {
+          date: '2026-01-12', time: '15:00',
+          notes: 'Introduction to hypnobirthing. Aoife presents with significant birth anxiety, primarily fear of loss of control. Goals and expectations discussed.',
+          recommendations: 'Begin daily listening to hypnobirthing relaxation audio. Practice diaphragmatic breathing for 10 minutes each morning.',
+          nextSteps: 'Introduce birth partner to techniques at next session. Obtain hypnobirthing workbook.',
+        },
+        {
+          date: '2026-02-09', time: '15:00',
+          notes: 'Breathing techniques and progressive relaxation practised with birth partner present. Aoife reporting reduced anxiety around birth. Surge breathing introduced.',
+          recommendations: 'Practice surge breathing daily. Continue audio tracks at bedtime. Journalling positive birth affirmations encouraged.',
+          nextSteps: 'Prepare personalised birth affirmation cards. Introduce visualisation of calm birth environment.',
+        },
+        {
+          date: '2026-03-02', time: '15:00',
+          notes: 'Birth preparation and positive affirmations session. Aoife confident and calm. Fear transformed into positive anticipation. Birth partner fully engaged in supporting role.',
+          recommendations: 'Listen to birth preparation audio daily. Review birth preferences document with midwife.',
+          nextSteps: 'Final hypnobirthing session at 38 weeks. Provide birth partner cue cards for labour support.',
+        },
+      ].forEach(c => addConsultationIfMissing(aoife.id, c));
+    }
+
+    const makeWeekly = (mumId, dayOfWeek, months, time, notes, recommendations, nextSteps) => {
+      months.forEach(([year, month]) => {
+        const lastDay = new Date(year, month, 0).getDate();
+        for (let day = 1; day <= lastDay; day++) {
+          if (new Date(year, month - 1, day).getDay() !== dayOfWeek) continue;
+          const date = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          addConsultationIfMissing(mumId, { date, time, notes, recommendations, nextSteps });
+        }
+      });
+    };
+
+    const emma = mums.find(m => m.name.toLowerCase() === 'emma thompson');
+    const lily = mums.find(m => m.name.toLowerCase() === 'lily garcía' || m.name.toLowerCase() === 'lily garcia');
+    const marchApril = [[2026, 3], [2026, 4]];
+
+    if (emma) {
+      makeWeekly(
+        emma.id, 1, marchApril, '10:00',
+        'Weekly postnatal check-in. C-section recovery and breastfeeding progress reviewed.',
+        'Continue iron supplements. Rest when possible.',
+        'Schedule next weekly check.',
+      );
+    }
+
+    if (lily) {
+      makeWeekly(
+        lily.id, 2, marchApril, '14:00',
+        'Weekly postnatal wellbeing session. Anxiety management strategies and sleep discussed.',
+        'Continue breathing exercises and journalling.',
+        'Check in with partner support.',
+      );
+    }
+
+    if (claire) {
+      makeWeekly(
+        claire.id, 3, marchApril, '10:30',
+        'Weekly lactation support session. Breastfeeding progress and latch technique reviewed.',
+        'Maintain feeding schedule. Stay well hydrated.',
+        'Monitor baby\'s weight gain.',
+      );
+    }
+
+    if (sophie) {
+      makeWeekly(
+        sophie.id, 4, marchApril, '11:00',
+        'Weekly antenatal check-in. Pregnancy progress and foetal movement monitored.',
+        'Attend antenatal classes. Keep active with gentle exercise.',
+        'Blood pressure check at next visit.',
+      );
+    }
+
+    if (aoife) {
+      makeWeekly(
+        aoife.id, 5, marchApril, '15:00',
+        'Weekly hypnobirthing session. Relaxation techniques and positive birth visualisation practised.',
+        'Daily breathing exercises. Listen to hypnobirthing audio tracks.',
+        'Practise birth partner support cues.',
+      );
+    }
+
+    if (didChange) {
+      write(KEYS.USERS, users);
+      write(KEYS.MUMS, mums);
+      write(KEYS.CONSULTATIONS, consultations);
+    }
+  }
+
   /* ── users ───────────────────────────────────────── */
   const Users = {
     all: () => read(KEYS.USERS) || [],
@@ -379,7 +646,15 @@ const DB = (() => {
     },
   };
 
-  seed();
+  function resetDemoData() {
+    Object.values(KEYS).forEach(key => localStorage.removeItem(key));
+    seed();
+    migrateExpandedDemoData();
+    Session.clear();
+  }
 
-  return { Users, Mums, Consultations, Session };
+  seed();
+  migrateExpandedDemoData();
+
+  return { Users, Mums, Consultations, Session, resetDemoData };
 })();

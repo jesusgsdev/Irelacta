@@ -83,10 +83,15 @@ const Auth = (() => {
   function updateNavbar(user) {
     const navUser  = document.getElementById('nav-user');
     const logoutBtn = document.getElementById('btn-logout');
+    const resetBtn = document.getElementById('btn-reset-demo');
     if (navUser) navUser.textContent = user ? `👋 ${user.name}` : '';
     if (logoutBtn) {
       logoutBtn.classList.toggle('hidden', !user);
       logoutBtn.onclick = logout;
+    }
+    if (resetBtn) {
+      resetBtn.classList.remove('hidden');
+      resetBtn.onclick = resetDemo;
     }
     // Keep the CSS session class in sync so the login page stays hidden for
     // logged-in users (prevents flash on reload and unintended back-navigation).
@@ -97,6 +102,15 @@ const Auth = (() => {
     DB.Session.clear();
     updateNavbar(null);
     showPage('page-login');
+  }
+
+  function resetDemo() {
+    const ok = confirm('Reset all demo data and start fresh? This will remove current local data.');
+    if (!ok) return;
+    DB.resetDemoData();
+    updateNavbar(null);
+    showPage('page-login');
+    showToast('Demo data reset successfully', 'success');
   }
 
   /* ── Auto-restore session ────────────────────────── */

@@ -408,6 +408,19 @@ textarea { resize: vertical; min-height: 90px; }
   padding: 1.75rem 1.5rem 3rem;
 }
 
+/* Give consultant views extra breathing room away from screen edges */
+#page-consultant .dashboard.container {
+  padding-left: 2.25rem;
+  padding-right: 2.25rem;
+}
+
+@media (max-width: 768px) {
+  #page-consultant .dashboard.container {
+    padding-left: 1.1rem;
+    padding-right: 1.1rem;
+  }
+}
+
 .dashboard__header {
   margin-bottom: 1.5rem;
   display: flex;
@@ -536,6 +549,36 @@ textarea { resize: vertical; min-height: 90px; }
   font-size: 0.92rem;
   color: var(--clr-text);
   white-space: pre-line;
+}
+
+.profile-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.consultation-section {
+  width: 100%;
+}
+
+.pagination-bar {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.pagination-bar__meta {
+  font-size: 0.85rem;
+  color: var(--clr-text-lt);
+}
+
+.pagination-bar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* ── Modal ────────────────────────────────────────────── */
@@ -700,6 +743,26 @@ textarea { resize: vertical; min-height: 90px; }
   align-items: center;
   gap: 0.35rem;
   margin-top: 0.2rem;
+}
+
+.profile-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(240px, 0.9fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.clinical-notes-panel {
+  background: var(--clr-bg);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem 1rem;
+}
+
+@media (max-width: 840px) {
+  .profile-split {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Back button area ─────────────────────────────────── */

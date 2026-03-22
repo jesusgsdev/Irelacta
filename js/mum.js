@@ -7,6 +7,9 @@
  */
 
 const MumDash = (() => {
+  let _historyPage = 1;
+  const HISTORY_PER_PAGE = 3;
+
   function render(mumId) {
     const mum = DB.Mums.findById(mumId);
     if (!mum) {
@@ -16,6 +19,7 @@ const MumDash = (() => {
         </div>`;
       return;
     }
+    _historyPage = 1;
     _renderProfile(mum);
     _renderHistory(mumId);
   }
@@ -48,7 +52,12 @@ const MumDash = (() => {
 
   function _renderHistory(mumId) {
     const listEl = document.getElementById('mum-consultation-list');
+    const pagerEl = document.getElementById('mum-cons-pagination');
     const cons   = DB.Consultations.forMum(mumId);
+    const totalPages = Math.max(1, Math.ceil(cons.length / HISTORY_PER_PAGE));
+    _historyPage = Math.min(Math.max(_historyPage, 1), totalPages);
+    const start = (_historyPage - 1) * HISTORY_PER_PAGE;
+    const pageCons = cons.slice(start, start + HISTORY_PER_PAGE);
 
     document.getElementById('mum-cons-count').textContent =
       `${cons.length} consultation${cons.length !== 1 ? 's' : ''}`;
@@ -60,10 +69,11 @@ const MumDash = (() => {
           <div class="empty-state__title">No consultations yet</div>
           <div class="empty-state__text">Your consultation history will appear here after your first visit.</div>
         </div>`;
+      pagerEl.innerHTML = '';
       return;
     }
 
-    listEl.innerHTML = cons.map(c => `
+    listEl.innerHTML = pageCons.map(c => `
       <div class="consultation-card">
         <div class="consultation-card__header">
           <div class="consultation-card__date">
@@ -87,6 +97,37 @@ const MumDash = (() => {
             <div class="consultation-card__body">${esc(c.nextSteps)}</div>
           </div>` : ''}
       </div>`).join('');
+
+      pagerEl.innerHTML = `
+        <div class="pagination-bar__meta">
+          Showing ${start + 1}-${Math.min(start + HISTORY_PER_PAGE, cons.length)} of ${cons.length}
+        </div>
+        <div class="pagination-bar__actions">
+          <button class="btn btn-ghost btn-sm" id="btn-mum-cons-prev" ${_historyPage === 1 ? 'disabled' : ''}>‹ Previous</button>
+          <span class="pagination-bar__meta">Page ${_historyPage} of ${totalPages}</span>
+          <button class="btn btn-ghost btn-sm" id="btn-mum-cons-next" ${_historyPage === totalPages ? 'disabled' : ''}>Next ›</button>
+        </div>`;
+
+      const prevBtn = document.getElementById('btn-mum-cons-prev');
+      const nextBtn = document.getElementById('btn-mum-cons-next');
+
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          if (_historyPage > 1) {
+            _historyPage--;
+            _renderHistory(mumId);
+          }
+        });
+      }
+
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          if (_historyPage < totalPages) {
+            _historyPage++;
+            _renderHistory(mumId);
+          }
+        });
+      }
   }
 
   return { render };

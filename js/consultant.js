@@ -19,6 +19,7 @@ const ConsultantDash = (() => {
   /* ═══ DASHBOARD ════════════════════════════════════ */
   function render() {
     _renderStats();
+    _renderNextWeekSummary();
     _renderMumList();
     _showView('view-dashboard');
   }
@@ -95,6 +96,51 @@ const ConsultantDash = (() => {
         }
       });
     });
+  }
+
+  function _renderNextWeekSummary() {
+    const countEl = document.getElementById('next-week-count');
+    const listEl = document.getElementById('next-week-list');
+    if (!countEl || !listEl) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const windowEnd = new Date(today);
+    windowEnd.setDate(windowEnd.getDate() + 6);
+
+    const mumsById = {};
+    DB.Mums.all().forEach(m => { mumsById[m.id] = m.name; });
+
+    const upcoming = DB.Consultations.all()
+      .filter(c => {
+        const d = new Date(`${c.date}T00:00:00`);
+        return d >= today && d <= windowEnd;
+      })
+      .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+    countEl.textContent = `${upcoming.length} appointment${upcoming.length !== 1 ? 's' : ''}`;
+
+    if (!upcoming.length) {
+      listEl.innerHTML = `
+        <div class="empty-state" style="padding:1rem .5rem">
+          <div class="empty-state__title" style="font-size:1rem">No appointments in the next 7 days</div>
+          <div class="empty-state__text">Use Calendar to schedule upcoming consultations.</div>
+        </div>`;
+      return;
+    }
+
+    listEl.innerHTML = `
+      <div class="appointments-summary__list">
+        ${upcoming.slice(0, 8).map(c => `
+          <div class="appointments-summary__item">
+            <span class="appointments-summary__line">
+              <strong>${esc(fmtDate(c.date))}</strong> &nbsp; 🕐 ${esc(c.time)} &nbsp; • &nbsp; ${esc(mumsById[c.mumId] || 'Unknown mum')}
+            </span>
+          </div>`).join('')}
+      </div>
+      ${upcoming.length > 8
+        ? `<div class="appointments-summary__meta" style="margin-top:.6rem">Showing first 8 appointments. Open Calendar for full schedule.</div>`
+        : ''}`;
   }
 
   /* ═══ MUM PROFILE VIEW ══════════════════════════════ */
@@ -233,6 +279,7 @@ const ConsultantDash = (() => {
           DB.Consultations.remove(btn.dataset.delete);
           _renderConsultationHistory(mumId);
           _renderStats();
+          _renderNextWeekSummary();
           showToast('Consultation deleted', 'error');
         }
       });
@@ -413,6 +460,7 @@ const ConsultantDash = (() => {
       _consultationPage = 1;
       _renderConsultationHistory(_selectedMumId);
       _renderStats();
+      _renderNextWeekSummary();
       showToast('Consultation saved', 'success');
     });
   }

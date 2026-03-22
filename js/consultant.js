@@ -10,6 +10,9 @@
 
 const ConsultantDash = (() => {
   let _selectedMumId = null;
+  let _calYear  = new Date().getFullYear();
+  let _calMonth = new Date().getMonth(); // 0-indexed
+  let _calSelectedDate = null;
 
   /* ═══ DASHBOARD ════════════════════════════════════ */
   function render() {
@@ -375,6 +378,123 @@ const ConsultantDash = (() => {
     });
   }
 
+  /* ═══ CALENDAR VIEW ════════════════════════════════ */
+  function openCalendarView() {
+    _calYear  = new Date().getFullYear();
+    _calMonth = new Date().getMonth();
+    _calSelectedDate = null;
+    _renderCalendar();
+    _showView('view-calendar');
+  }
+
+  function _renderCalendar() {
+    const year  = _calYear;
+    const month = _calMonth;
+
+    const monthLabel = new Date(year, month, 1)
+      .toLocaleDateString('en-IE', { month: 'long', year: 'numeric' });
+    document.getElementById('cal-month-label').textContent = monthLabel;
+
+    // Build a date → consultations map for the whole data set
+    const dateMap = {};
+    DB.Consultations.all().forEach(c => {
+      if (!dateMap[c.date]) dateMap[c.date] = [];
+      dateMap[c.date].push(c);
+    });
+
+    const todayStr   = new Date().toISOString().slice(0, 10);
+    const firstDay   = new Date(year, month, 1).getDay();     // 0=Sun
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    // Convert to Monday-first offset (0=Mon … 6=Sun)
+    const startOffset = (firstDay + 6) % 7;
+
+    const dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    let html = dayHeaders.map(d =>
+      `<div class="cal-day-header" role="columnheader">${d}</div>`,
+    ).join('');
+
+    for (let i = 0; i < startOffset; i++) {
+      html += '<div class="cal-day cal-day--empty" aria-hidden="true"></div>';
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const cons    = dateMap[dateStr] || [];
+      const isToday     = dateStr === todayStr;
+      const isSelected  = dateStr === _calSelectedDate;
+      const hasEvents   = cons.length > 0;
+
+      let cls = 'cal-day';
+      if (isToday)    cls += ' cal-day--today';
+      if (hasEvents)  cls += ' cal-day--has-events';
+      if (isSelected) cls += ' cal-day--selected';
+
+      html += `
+        <div class="${cls}" data-date="${esc(dateStr)}"
+             role="gridcell" tabindex="0"
+             aria-label="${day} ${monthLabel}${cons.length ? `, ${cons.length} consultation${cons.length !== 1 ? 's' : ''}` : ''}">
+          <span>${day}</span>
+          ${hasEvents ? `<span class="cal-day__count">${cons.length}</span>` : ''}
+        </div>`;
+    }
+
+    document.getElementById('cal-grid').innerHTML = html;
+
+    document.querySelectorAll('#cal-grid .cal-day:not(.cal-day--empty)').forEach(dayEl => {
+      const handler = () => {
+        _calSelectedDate = dayEl.dataset.date;
+        _renderCalendar(); // redraw to update selection highlight
+        _renderDayConsultations(_calSelectedDate, dateMap[_calSelectedDate] || []);
+      };
+      dayEl.addEventListener('click', handler);
+      dayEl.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(); }
+      });
+    });
+
+    // If a day was already selected, refresh its panel
+    if (_calSelectedDate) {
+      _renderDayConsultations(_calSelectedDate, dateMap[_calSelectedDate] || []);
+    }
+  }
+
+  function _renderDayConsultations(dateStr, cons) {
+    document.getElementById('cal-day-title').textContent = fmtDate(dateStr);
+    const listEl = document.getElementById('cal-day-list');
+
+    if (!cons.length) {
+      listEl.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state__icon">📋</div>
+          <div class="empty-state__title">No consultations</div>
+          <div class="empty-state__text">No consultations scheduled for this day.</div>
+        </div>`;
+      return;
+    }
+
+    const mumMap = {};
+    DB.Mums.all().forEach(m => { mumMap[m.id] = m; });
+
+    const sorted = cons.slice().sort((a, b) => a.time.localeCompare(b.time));
+    listEl.innerHTML = sorted.map(c => {
+      const mum = mumMap[c.mumId];
+      return `
+        <div class="consultation-card">
+          <div class="consultation-card__header">
+            <div class="consultation-card__date">
+              🕐 ${esc(c.time)}
+              ${mum ? `&nbsp;<span class="badge badge-primary">${esc(mum.name)}</span>` : ''}
+            </div>
+          </div>
+          ${c.notes ? `
+            <div class="consultation-card__section">
+              <div class="consultation-card__section-title">Notes</div>
+              <div class="consultation-card__body">${esc(c.notes)}</div>
+            </div>` : ''}
+        </div>`;
+    }).join('');
+  }
+
   /* ═══ VIEW SWITCHING ════════════════════════════════ */
   function _showView(id) {
     document.querySelectorAll('#page-consultant .view').forEach(v => v.classList.remove('active'));
@@ -392,10 +512,37 @@ const ConsultantDash = (() => {
     // Add mum button
     document.getElementById('btn-add-mum').addEventListener('click', openAddMumModal);
 
-    // Back button
+    // Calendar button
+    document.getElementById('btn-open-calendar').addEventListener('click', openCalendarView);
+
+    // Back button (dashboard)
     document.getElementById('btn-back-to-dashboard').addEventListener('click', () => {
       _selectedMumId = null;
       render();
+    });
+
+    // Back button (calendar)
+    document.getElementById('btn-back-from-calendar').addEventListener('click', () => {
+      render();
+    });
+
+    // Calendar navigation
+    document.getElementById('btn-cal-prev').addEventListener('click', () => {
+      _calMonth--;
+      if (_calMonth < 0) { _calMonth = 11; _calYear--; }
+      _calSelectedDate = null;
+      _renderCalendar();
+      document.getElementById('cal-day-title').textContent = 'Select a day';
+      document.getElementById('cal-day-list').innerHTML = '';
+    });
+
+    document.getElementById('btn-cal-next').addEventListener('click', () => {
+      _calMonth++;
+      if (_calMonth > 11) { _calMonth = 0; _calYear++; }
+      _calSelectedDate = null;
+      _renderCalendar();
+      document.getElementById('cal-day-title').textContent = 'Select a day';
+      document.getElementById('cal-day-list').innerHTML = '';
     });
 
     // Add consultation button

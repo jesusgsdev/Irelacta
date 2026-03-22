@@ -110,9 +110,14 @@
           <h2 class="dashboard__title">My Clients</h2>
           <p class="dashboard__subtitle">Manage mum profiles and consultation records</p>
         </div>
-        <button class="btn btn-primary" id="btn-add-mum">
-          ➕ Add new mum
-        </button>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+          <button class="btn btn-secondary" id="btn-open-calendar">
+            📅 Calendar
+          </button>
+          <button class="btn btn-primary" id="btn-add-mum">
+            ➕ Add new mum
+          </button>
+        </div>
       </div>
 
       <!-- Stats -->
@@ -177,6 +182,39 @@
             </button>
           </div>
           <div class="consultation-list" id="consultation-list" aria-label="Consultation records"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── VIEW: Calendar ──────────────────────────────── -->
+  <div class="view" id="view-calendar">
+    <div class="dashboard container">
+
+      <div class="back-bar">
+        <button class="btn btn-ghost btn-sm" id="btn-back-from-calendar">← Back</button>
+        <span class="back-bar__title">Upcoming Consultations</span>
+      </div>
+
+      <div class="grid-2" style="align-items:start">
+
+        <!-- Monthly calendar -->
+        <div class="card">
+          <div class="calendar-nav">
+            <button class="btn btn-ghost btn-sm" id="btn-cal-prev">‹ Prev</button>
+            <h3 id="cal-month-label" style="margin:0"></h3>
+            <button class="btn btn-ghost btn-sm" id="btn-cal-next">Next ›</button>
+          </div>
+          <div id="cal-grid" class="cal-grid" role="grid" aria-label="Consultation calendar"></div>
+        </div>
+
+        <!-- Selected day detail -->
+        <div>
+          <div class="card__header" style="margin-bottom:1rem">
+            <h3 id="cal-day-title">Select a day</h3>
+          </div>
+          <div class="consultation-list" id="cal-day-list" aria-label="Consultations for selected day"></div>
         </div>
 
       </div>

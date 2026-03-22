@@ -44,6 +44,7 @@ body {
   color: var(--clr-text);
   min-height: 100vh;
   line-height: 1.6;
+  overflow-x: hidden;
 }
 
 a { color: var(--clr-primary-dk); text-decoration: none; }
@@ -98,6 +99,7 @@ p { margin-bottom: 0.5rem; }
 .mt-lg { margin-top: 1.5rem; }
 .mb-md { margin-bottom: 1rem; }
 .mb-lg { margin-bottom: 1.5rem; }
+.ml-sm { margin-left: 0.5rem; }
 .text-center { text-align: center; }
 .text-sm { font-size: 0.85rem; }
 .text-lt { color: var(--clr-text-lt); }
@@ -144,6 +146,10 @@ p { margin-bottom: 0.5rem; }
 .navbar__user {
   font-size: 0.85rem;
   color: var(--clr-text-lt);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 /* ── Hero / Welcome ───────────────────────────────────── */
@@ -235,6 +241,8 @@ p { margin-bottom: 0.5rem; }
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-bottom: 1rem;
 }
 
@@ -751,5 +759,22 @@ textarea { resize: vertical; min-height: 90px; }
 /* ── Responsive nav fix ───────────────────────────────── */
 @media (max-width: 480px) {
   .navbar__brand span { display: none; }
+  .navbar__actions { min-width: 0; overflow: hidden; }
   .btn-lg { padding: 0.75rem 1.25rem; }
+  .login-card { padding: 1.75rem 1.25rem; }
 }
+
+/* ── Responsive toast ─────────────────────────────────── */
+@media (max-width: 480px) {
+  #toast-container {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+  }
+  .toast { max-width: 100%; }
+}
+
+/* ── Hide login page for authenticated users ──────────── */
+/* Applied immediately via an inline <head> script when a session is present,
+   preventing the login form from flashing before JS initialises. */
+html.session-active #page-login { display: none !important; }

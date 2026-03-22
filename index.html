@@ -15,6 +15,16 @@
   />
 
   <link rel="stylesheet" href="css/styles.css" />
+
+  <!-- Immediately hide the login page if a valid session already exists,
+       preventing a flash of the login form for returning authenticated users. -->
+  <script>
+    try {
+      if (localStorage.getItem('irelacta_current_user')) {
+        document.documentElement.classList.add('session-active');
+      }
+    } catch (e) { /* localStorage unavailable – degrade gracefully */ }
+  </script>
 </head>
 <body>
 
@@ -413,7 +423,13 @@
     const loginPage = document.getElementById('page-login');
 
     window._onShowPage = function() {
-      navbar.style.display = loginPage.classList.contains('active') ? 'none' : '';
+      const isLoginPage = loginPage.classList.contains('active');
+      navbar.style.display = isLoginPage ? 'none' : '';
+      // If the login page somehow becomes active while a session still exists
+      // (e.g. browser cache restoration), redirect back to the dashboard.
+      if (isLoginPage && DB.Session.get()) {
+        Auth.restore();
+      }
     };
 
     ConsultantDash.bootstrap();

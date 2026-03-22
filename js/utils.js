@@ -65,7 +65,7 @@ function showPage(id) {
 
 /* ── Escape HTML ──────────────────────────────────────── */
 function esc(str) {
-  if (!str) return '';
+  if (str === null || str === undefined) return '';
   return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

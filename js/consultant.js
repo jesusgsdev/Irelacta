@@ -5,7 +5,7 @@
  *   - Dashboard overview (mum list + stats)
  *   - Mum profile detail (profile info + consultation history + add consultation)
  *   - Add new mum modal
- *   - Add / edit consultation modal
+ *   - Add consultation modal
  */
 
 const ConsultantDash = (() => {
@@ -54,8 +54,13 @@ const ConsultantDash = (() => {
       return;
     }
 
+    // Build a per-mum consultation count in a single pass to avoid N+1 reads
+    const allCons = DB.Consultations.all();
+    const consCountMap = {};
+    allCons.forEach(c => { consCountMap[c.mumId] = (consCountMap[c.mumId] || 0) + 1; });
+
     listEl.innerHTML = mums.map(m => {
-      const consCount = DB.Consultations.forMum(m.id).length;
+      const consCount = consCountMap[m.id] || 0;
       return `
         <div class="mum-card" data-id="${esc(m.id)}" tabindex="0" role="button" aria-label="Open profile for ${esc(m.name)}">
           <div class="mum-card__avatar">${initials(m.name)}</div>
@@ -74,7 +79,16 @@ const ConsultantDash = (() => {
 
     listEl.querySelectorAll('.mum-card').forEach(card => {
       card.addEventListener('click',  () => openMumProfile(card.dataset.id));
-      card.addEventListener('keydown', e => { if (e.key === 'Enter') openMumProfile(card.dataset.id); });
+      card.addEventListener('keydown', e => {
+        const isEnter = e.key === 'Enter' || e.keyCode === 13;
+        const isSpace = e.key === ' ' || e.key === 'Spacebar' || e.keyCode === 32;
+        if (isEnter || isSpace) {
+          if (isSpace) {
+            e.preventDefault();
+          }
+          openMumProfile(card.dataset.id);
+        }
+      });
     });
   }
 
@@ -214,13 +228,29 @@ const ConsultantDash = (() => {
       });
 
       // Create a mum login account with a unique username and random password
-      const baseName = name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '').slice(0, 12);
-      let username = baseName + Math.floor(Math.random() * 900 + 100);
-      let attempts = 0;
-      while (DB.Users.findByUsername(username) && attempts < 10) {
-        username = baseName + Math.floor(Math.random() * 9000 + 1000);
-        attempts++;
+      let baseName = name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '').slice(0, 12);
+      if (!baseName) {
+        baseName = 'mum';
       }
+
+      let username;
+      let attempts    = 0;
+      const maxAttempts = 1000;
+      do {
+        // Incorporate mum.id when available to greatly reduce collision risk
+        const randomSuffix = Math.floor(Math.random() * 9000 + 1000); // 4-digit random
+        const uniquePart   = (mum && mum.id != null)
+          ? String(mum.id) + String(randomSuffix)
+          : String(randomSuffix);
+        username = baseName + uniquePart;
+        attempts++;
+        if (attempts >= maxAttempts) {
+          console.error('Failed to generate unique username for mum', mum);
+          errorEl.textContent = 'Profile created, but failed to create a unique login. Please try again or contact support.';
+          errorEl.classList.remove('hidden');
+          return;
+        }
+      } while (DB.Users.findByUsername(username));
       const chars    = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#';
       const password = Array.from(
         { length: 10 },
@@ -310,8 +340,14 @@ const ConsultantDash = (() => {
       errorEl.classList.add('hidden');
       const date = form['cons-date'].value;
       const time = form['cons-time'].value;
+      const notes = form['cons-notes'].value.trim();
       if (!date || !time) {
         errorEl.textContent = 'Date and time are required.';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      if (!notes) {
+        errorEl.textContent = 'Consultation notes are required.';
         errorEl.classList.remove('hidden');
         return;
       }
@@ -321,7 +357,7 @@ const ConsultantDash = (() => {
         mumId:           _selectedMumId,
         date,
         time,
-        notes:           form['cons-notes'].value.trim(),
+        notes:           notes,
         recommendations: form['cons-recommendations'].value.trim(),
         nextSteps:       form['cons-next-steps'].value.trim(),
         consultantId:    user ? user.id : '',

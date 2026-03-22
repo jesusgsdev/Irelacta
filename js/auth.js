@@ -12,24 +12,40 @@ const Auth = (() => {
     const passwordEl = document.getElementById('login-password');
     const hintEl     = document.getElementById('login-hint');
 
+    function activateRoleTab(targetTab) {
+      // Update visual state, ARIA state, and tab order for all tabs
+      roleTabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+        t.setAttribute('tabindex', '-1');
+      });
+
+      if (!targetTab) return;
+
+      targetTab.classList.add('active');
+      targetTab.setAttribute('aria-selected', 'true');
+      targetTab.setAttribute('tabindex', '0');
+
+      const role = targetTab.dataset.role;
+      if (hintEl) {
+        if (role === 'consultant') {
+          hintEl.textContent = 'Demo: consultant / demo1234';
+        } else {
+          hintEl.textContent = 'Demo: emma / demo1234  or  lily / demo1234';
+        }
+      }
+    }
+
     // Role tab switching fills demo credentials as a hint
     roleTabs.forEach(tab => {
       tab.addEventListener('click', () => {
-        roleTabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        const role = tab.dataset.role;
-        if (hintEl) {
-          if (role === 'consultant') {
-            hintEl.textContent = 'Demo: consultant / demo1234';
-          } else {
-            hintEl.textContent = 'Demo: emma / demo1234  or  lily / demo1234';
-          }
-        }
+        activateRoleTab(tab);
+        tab.focus();
       });
     });
 
     // Select default tab
-    if (roleTabs[0]) roleTabs[0].click();
+    if (roleTabs[0]) activateRoleTab(roleTabs[0]);
 
     function setError(msg) {
       errorEl.textContent = msg;

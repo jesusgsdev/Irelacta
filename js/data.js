@@ -111,6 +111,7 @@ const DB = (() => {
     findById: id => Users.all().find(u => u.id === id),
     add(data) {
       const users = Users.all();
+      if (data.username && users.some(u => u.username === data.username)) return null;
       const user  = { id: uid(), createdAt: now(), ...data };
       users.push(user);
       write(KEYS.USERS, users);

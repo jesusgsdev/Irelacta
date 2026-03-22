@@ -105,6 +105,8 @@ const ConsultantDash = (() => {
     const pane  = document.getElementById('mum-profile-pane');
     if (!mum) return;
 
+    const mumUser = DB.Users.findByMumId(mumId);
+
     pane.innerHTML = `
       <div class="profile-section">
         <div class="profile-avatar">${initials(mum.name)}</div>
@@ -123,6 +125,9 @@ const ConsultantDash = (() => {
             ? `<div class="profile-info__detail">🍼 Baby ${esc(mum.babyName)}
                  ${mum.babyDob ? ` – born ${fmtDate(mum.babyDob)}` : ''}
                </div>`
+            : ''}
+          ${mumUser
+            ? `<div class="profile-info__detail">🔑 Login: <strong>${esc(mumUser.username)}</strong></div>`
             : ''}
           <div style="margin-top:0.6rem">
             <button class="btn btn-outline btn-sm" id="btn-edit-profile">✏️ Edit profile</button>

@@ -109,6 +109,7 @@ const DB = (() => {
     all: () => read(KEYS.USERS) || [],
     findByUsername: username => Users.all().find(u => u.username === username),
     findById: id => Users.all().find(u => u.id === id),
+    findByMumId: mumId => Users.all().find(u => u.mumId === mumId),
     add(data) {
       const users = Users.all();
       if (data.username && users.some(u => u.username === data.username)) return null;

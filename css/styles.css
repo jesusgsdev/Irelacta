@@ -405,7 +405,7 @@ textarea { resize: vertical; min-height: 90px; }
 
 /* ── Dashboard layout ─────────────────────────────────── */
 .dashboard {
-  padding: 1.75rem 0 3rem;
+  padding: 1.75rem 1.5rem 3rem;
 }
 
 .dashboard__header {
@@ -778,3 +778,72 @@ textarea { resize: vertical; min-height: 90px; }
 /* Applied immediately via an inline <head> script when a session is present,
    preventing the login form from flashing before JS initialises. */
 html.session-active #page-login { display: none !important; }
+
+/* ── Calendar ─────────────────────────────────────────── */
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.cal-day-header {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--clr-text-lt);
+  padding: 0.4rem 0;
+  text-transform: uppercase;
+}
+
+.cal-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: var(--transition);
+  padding: 0.2rem;
+  position: relative;
+  border: 1px solid transparent;
+}
+
+.cal-day:hover:not(.cal-day--empty) {
+  background: var(--clr-primary-lt);
+}
+
+.cal-day--empty { cursor: default; }
+
+.cal-day--today {
+  font-weight: 700;
+  border-color: var(--clr-primary);
+  color: var(--clr-primary-dk);
+}
+
+.cal-day--has-events {
+  background: var(--clr-primary-lt);
+}
+
+.cal-day--selected {
+  background: var(--clr-primary) !important;
+  color: #fff;
+  font-weight: 700;
+}
+
+.cal-day__count {
+  font-size: 0.6rem;
+  color: var(--clr-secondary);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cal-day--selected .cal-day__count { color: rgba(255,255,255,0.85); }

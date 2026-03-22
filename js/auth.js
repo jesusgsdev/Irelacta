@@ -88,6 +88,9 @@ const Auth = (() => {
       logoutBtn.classList.toggle('hidden', !user);
       logoutBtn.onclick = logout;
     }
+    // Keep the CSS session class in sync so the login page stays hidden for
+    // logged-in users (prevents flash on reload and unintended back-navigation).
+    document.documentElement.classList.toggle('session-active', !!user);
   }
 
   function logout() {

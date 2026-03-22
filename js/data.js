@@ -159,6 +159,9 @@ const DB = (() => {
   };
 
   /* ── auth session ────────────────────────────────── */
+  // NOTE: Passwords are stored in plain text for this demo application.
+  // A production application must use proper password hashing (e.g. bcrypt
+  // via a server-side API) and never store credentials in localStorage.
   const Session = {
     get:    () => read(KEYS.CURRENT_USER),
     set:    user => write(KEYS.CURRENT_USER, user),

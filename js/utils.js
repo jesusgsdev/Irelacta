@@ -59,6 +59,8 @@ function showPage(id) {
     page.classList.add('active');
     window.scrollTo(0, 0);
   }
+  // Notify any registered listener (e.g. navbar visibility update)
+  if (typeof window._onShowPage === 'function') window._onShowPage();
 }
 
 /* ── Escape HTML ──────────────────────────────────────── */

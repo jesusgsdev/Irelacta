@@ -213,10 +213,19 @@ const ConsultantDash = (() => {
         notes:    form['mum-notes'].value.trim(),
       });
 
-      // Create a mum login account
-      const username = name.toLowerCase().replace(/\s+/g, '').slice(0, 12) +
-                       Math.floor(Math.random() * 900 + 100);
-      const password = 'Welcome1!';
+      // Create a mum login account with a unique username and random password
+      const baseName = name.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '').slice(0, 12);
+      let username = baseName + Math.floor(Math.random() * 900 + 100);
+      let attempts = 0;
+      while (DB.Users.findByUsername(username) && attempts < 10) {
+        username = baseName + Math.floor(Math.random() * 9000 + 1000);
+        attempts++;
+      }
+      const chars    = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#';
+      const password = Array.from(
+        { length: 10 },
+        () => chars[Math.floor(Math.random() * chars.length)],
+      ).join('');
       DB.Users.add({ username, password, role: 'mum', name, mumId: mum.id });
 
       closeModal('modal-add-mum');

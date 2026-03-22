@@ -407,25 +407,19 @@
 
   /* ── Initialise app ─────────────────────────────────── */
   document.addEventListener('DOMContentLoaded', () => {
-    // Hide navbar on login page; show on other pages
-    const navbar = document.getElementById('navbar');
+    // Register a page-change listener so the navbar visibility updates
+    // whenever showPage() is called – without monkey-patching the function.
+    const navbar    = document.getElementById('navbar');
+    const loginPage = document.getElementById('page-login');
 
-    function updateNavbarVisibility() {
-      const loginActive = document.getElementById('page-login').classList.contains('active');
-      navbar.style.display = loginActive ? 'none' : '';
-    }
-
-    // Patch showPage to update navbar visibility
-    const _origShowPage = showPage;
-    window.showPage = function(id) {
-      _origShowPage(id);
-      updateNavbarVisibility();
+    window._onShowPage = function() {
+      navbar.style.display = loginPage.classList.contains('active') ? 'none' : '';
     };
 
     ConsultantDash.bootstrap();
     Auth.init();
     Auth.restore();
-    updateNavbarVisibility();
+    window._onShowPage(); // initial state
   });
 </script>
 
